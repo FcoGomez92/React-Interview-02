@@ -1,4 +1,13 @@
-export function UsersTable ({ users, isColoured, deleteUser, changeSort }) {
+import { type UserUUID, type User } from '../types'
+
+interface UsersTableProps {
+  users: User[]
+  isColoured: boolean
+  deleteUser: (uuid: UserUUID) => void
+  changeSort: (e: React.MouseEvent<HTMLTableCellElement>) => void
+}
+
+export function UsersTable ({ users, isColoured, deleteUser, changeSort }: UsersTableProps): JSX.Element {
   return (
     <table>
       <thead>
@@ -11,7 +20,7 @@ export function UsersTable ({ users, isColoured, deleteUser, changeSort }) {
         </tr>
       </thead>
       <tbody>
-        {users && users.length > 0 && users.map(user => (
+        {(users != null) && users.length > 0 && users.map(user => (
           <tr key={user.login.uuid} className={isColoured ? 'isColoured' : ''}>
             <td>
               <img src={user.picture.thumbnail} alt='User Avatar' />

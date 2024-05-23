@@ -1,25 +1,43 @@
 import { useState, useEffect, useRef, useMemo } from 'react'
 import { fetchUsers } from '../services/users'
+import { type UserUUID, type User } from '../types.d'
 
 const sortProperties = {
-  first: (u) => u.name.first,
-  last: (u) => u.name.last,
-  country: (u) => u.location.country
+  first: (u: User) => u.name.first,
+  last: (u: User) => u.name.last,
+  country: (u: User) => u.location.country
+} as const
+
+interface UseUsersProps {
+  filterValue: string
 }
 
-export function useUsers ({ filterValue }) {
-  const [users, setUsers] = useState([])
-  const [sortBy, setSortBy] = useState(false)
-  const [error, setError] = useState('')
-  const [loading, setLoading] = useState(true)
-  const initialUsersRef = useRef(null)
-  const prevFilteredUsersRef = useRef([])
+type SortBy = keyof typeof sortProperties | ''
+
+interface UseUsersReturnType {
+  sortedUsers: User[]
+  error: string
+  loading: boolean
+  resetUsers: () => void
+  handleSort: (e: React.MouseEvent<HTMLTableCellElement>) => void
+  handleSortByCountryButton: () => void
+  deleteUser: (idToDelete: UserUUID) => void
+  sortBy: SortBy
+}
+
+export function useUsers ({ filterValue }: UseUsersProps): UseUsersReturnType {
+  const [users, setUsers] = useState<User[]>([])
+  const [sortBy, setSortBy] = useState<SortBy>('')
+  const [error, setError] = useState<string>('')
+  const [loading, setLoading] = useState<boolean>(true)
+  const initialUsersRef = useRef<User[]>([])
+  const prevFilteredUsersRef = useRef<User[]>([])
 
   useEffect(() => {
     getUsers()
   }, [])
 
-  const getUsers = () => {
+  const getUsers = (): void => {
     setError('')
     setLoading(true)
     fetchUsers()
@@ -34,29 +52,31 @@ export function useUsers ({ filterValue }) {
       .finally(() => { setLoading(false) })
   }
 
-  const deleteUser = (idToDelete) => {
+  const deleteUser = (idToDelete: UserUUID): void => {
     const newList = users.filter(user => user.login.uuid !== idToDelete)
     setUsers(newList)
   }
 
-  const resetUsers = () => {
+  const resetUsers = (): void => {
     const value = initialUsersRef.current
-    setUsers(value)
+    if (value != null) {
+      setUsers(value)
+    }
   }
 
-  const handleSort = (e) => {
-    const property = e.target.dataset.name
+  const handleSort = (e: React.MouseEvent<HTMLTableCellElement>): void => {
+    const property = e.currentTarget.dataset.name as SortBy
     setSortBy(property)
   }
-  const handleSortByCountryButton = () => {
+  const handleSortByCountryButton = (): void => {
     setSortBy(prevSt => {
-      return !prevSt ? 'country' : ''
+      return prevSt === '' ? 'country' : ''
     })
   }
 
   const filteredUsers = useMemo(() => {
     console.log('filtrados')
-    if (users.length === 0 || !filterValue) return users
+    if (users.length === 0 || filterValue === '') return users
     const newFilteredUsers = users.filter(user => user.location.country.toLowerCase().includes(filterValue.toLowerCase()))
     const areEqual = JSON.stringify(prevFilteredUsersRef.current) === JSON.stringify(newFilteredUsers)
     if (!areEqual) {
@@ -68,7 +88,7 @@ export function useUsers ({ filterValue }) {
 
   const sortedUsers = useMemo(() => {
     console.log('ordenados')
-    return filteredUsers && sortBy
+    return filteredUsers.length > 0 && sortBy !== ''
       ? filteredUsers.toSorted((a, b) => sortProperties[sortBy](a).localeCompare(sortProperties[sortBy](b)))
       : filteredUsers
   }, [filteredUsers, sortBy])

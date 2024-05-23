@@ -9,15 +9,15 @@
     "preview": "vite preview"
   },
   "devDependencies": {
-    "standard": "^17.0.0",
+    "@types/react": "^18.3.2",
+    "@types/react-dom": "^18.3.0",
+    "ts-standard": "^12.0.2",
+    "typescript": "^5.4.5",
     "vite": "^4.3.2"
   },
   "dependencies": {
     "@vitejs/plugin-react": "^4.0.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
-  },
-  "eslintConfig": {
-    "extends":["./node_modules/standard/eslintrc.json"]
   }
 }
